@@ -24,7 +24,7 @@ set -e
 #
 
 url="https://get.docker.com/"
-docker_version=17.03.1
+docker_version=17.03.1.ce
 apt_url="https://mirrors.ustc.edu.cn/docker-apt"
 yum_url="https://mirrors.ustc.edu.cn/docker-yum"
 gpg_fingerprint="58118E89F3A912897C070ADBF76221572C52609D"
