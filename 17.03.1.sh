@@ -25,8 +25,8 @@ set -e
 
 url="https://get.docker.com/"
 docker_version=17.03.1
-apt_url="https://apt.dockerproject.org"
-yum_url="https://yum.dockerproject.org"
+apt_url="https://mirrors.ustc.edu.cn/docker-apt"
+yum_url="https://mirrors.ustc.edu.cn/docker-yum"
 gpg_fingerprint="58118E89F3A912897C070ADBF76221572C52609D"
 
 key_servers="
@@ -34,6 +34,20 @@ ha.pool.sks-keyservers.net
 pgp.mit.edu
 keyserver.ubuntu.com
 "
+
+use_ustc_repo() {
+	case "$lsb_dist" in
+
+		debian)
+			$sh_c "sed -i 's/httpredir.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list"
+			;;
+
+		ubuntu)
+			$sh_c "sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list"
+			;;
+
+	esac
+}
 
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
@@ -381,6 +395,8 @@ do_install() {
 		ubuntu|debian|raspbian)
 			export DEBIAN_FRONTEND=noninteractive
 
+			use_ustc_repo
+			
 			did_apt_get_update=
 			apt_get_update() {
 				if [ -z "$did_apt_get_update" ]; then
@@ -465,7 +481,7 @@ do_install() {
 			$sh_c "cat >/etc/yum.repos.d/docker-${repo}.repo" <<-EOF
 			[docker-${repo}-repo]
 			name=Docker ${repo} Repository
-			baseurl=${yum_url}/repo/${repo}/${lsb_dist}/${dist_version}
+			baseurl=${yum_url}/repo/${lsb_dist}${dist_version}
 			enabled=1
 			gpgcheck=1
 			gpgkey=${yum_url}/gpg

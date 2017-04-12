@@ -25,6 +25,37 @@ set -e
 
 url='https://get.docker.com/'
 docker_version=1.11.2
+apt_docker_repo=https://mirrors.ustc.edu.cn/docker-apt/repo/
+yum_docker_repo=https://mirrors.ustc.edu.cn/docker-yum/repo/
+yum_docker_gpgkey=https://mirrors.ustc.edu.cn/docker-yum/gpg
+
+use_ustc_repo() {
+	case "$lsb_dist" in
+
+		debian)
+			$sh_c "sed -i 's/httpredir.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list"
+			;;
+
+		ubuntu)
+			$sh_c "sed -i 's/archive.ubuntu.com/mirrors.ustc.edu.cn/g' /etc/apt/sources.list"
+			;;
+
+	esac
+
+	# Or comment out original mirrors and a list in sources.list.d
+	# $sh_c "sed -i 's/^[^#]/###&/g' /etc/apt/sources.list"
+	# $sh_c "mkdir -p /etc/apt/sources.list.d"
+	# comment out source mirror by default to speed up apt update, you can change it when you need it
+	# detail info please refer to https://mirrors.ustc.edu.cn/
+	# $sh_c "echo deb https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version} main restricted universe multiverse > /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo \\# deb-src https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version} main main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo deb https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-updates main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo \\# deb-src https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-updates main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo deb https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-backports main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo \\# deb-src https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-backports main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo deb https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-security main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+	# $sh_c "echo \\# deb-src https://mirrors.ustc.edu.cn/${lsb_dist}/ ${dist_version}-security main restricted universe multiverse >> /etc/apt/sources.list.d/ustc.list"
+}
 
 command_exists() {
 	command -v "$@" > /dev/null 2>&1
@@ -358,6 +389,8 @@ do_install() {
 		ubuntu|debian)
 			export DEBIAN_FRONTEND=noninteractive
 
+			use_ustc_repo
+
 			did_apt_get_update=
 			apt_get_update() {
 				if [ -z "$did_apt_get_update" ]; then
@@ -412,7 +445,7 @@ do_install() {
 			set -x
 			$sh_c "apt-key adv --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys 58118E89F3A912897C070ADBF76221572C52609D"
 			$sh_c "mkdir -p /etc/apt/sources.list.d"
-			$sh_c "echo deb [arch=$(dpkg --print-architecture)] https://apt.dockerproject.org/repo ${lsb_dist}-${dist_version} ${repo} > /etc/apt/sources.list.d/docker.list"
+			$sh_c "echo deb [arch=$(dpkg --print-architecture)] ${apt_docker_repo} ${lsb_dist}-${dist_version} ${repo} > /etc/apt/sources.list.d/docker.list"
 			$sh_c "sleep 3; apt-get update; apt-get install -y -q docker-engine=${docker_version}-0~${dist_version}"
 			)
 			echo_docker_as_nonroot
@@ -423,10 +456,10 @@ do_install() {
 			$sh_c "cat >/etc/yum.repos.d/docker-${repo}.repo" <<-EOF
 			[docker-${repo}-repo]
 			name=Docker ${repo} Repository
-			baseurl=https://yum.dockerproject.org/repo/${repo}/${lsb_dist}/${dist_version}
+			baseurl=${yum_docker_repo}${lsb_dist}${dist_version}
 			enabled=1
 			gpgcheck=1
-			gpgkey=https://yum.dockerproject.org/gpg
+			gpgkey=${yum_docker_gpgkey}
 			EOF
 			if [ "$lsb_dist" = "fedora" ] && [ "$dist_version" -ge "22" ]; then
 				(
