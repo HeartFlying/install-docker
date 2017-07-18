@@ -5,13 +5,13 @@ These scripts are originated from get.docker.com and are meant for quick & easy 
 # Usage
 
 ```
-export DOCKER_VERSION=<docker-version-you-want> && curl -sSL https://raw.githubusercontent.com/gitlawr/install-docker/master/${DOCKER_VERSION}.sh | sh
+curl -sSL https://github.com/gitlawr/install-docker/blob/1.0/<docker-version-you-want>.sh?raw=true | sh
 ```
 
 or:
 
 ```
-export DOCKER_VERSION=<docker-version-you-want> && wget -qO- https://raw.githubusercontent.com/gitlawr/install-docker/master/${DOCKER_VERSION}.sh | sh
+wget -qO- https://github.com/gitlawr/install-docker/blob/1.0/<docker-version-you-want>.sh?raw=true | sh 
 ```
 
 # Supported Docker Version
